@@ -1,0 +1,173 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>定时器 | Lin's Blog</title><meta name="keywords" content="Linux网络编程"><meta name="author" content="木木想去北海种花"><meta name="copyright" content="木木想去北海种花"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="定时器 Linux 3种定时方法  socket 选项 SO_RCVTIMEO 和 SO_SNDTIMEO分别用来设置 socket 接收数据超时时间和发送数据超时时间。因此，这2个选项仅对数据的接收和发送相关的 socket 专用的系统调用有效。 SIGALRM 信号基于升序链表的定时器处理非活动连接 IO 复用系统调用的超时参数Linux 下的3组 IO 系统调用都带有超时参数，因此它们不仅能">
+<meta property="og:type" content="article">
+<meta property="og:title" content="定时器">
+<meta property="og:url" content="https://mumu-lsl.github.io/posts/2e5216dd/index.html">
+<meta property="og:site_name" content="Lin&#39;s Blog">
+<meta property="og:description" content="定时器 Linux 3种定时方法  socket 选项 SO_RCVTIMEO 和 SO_SNDTIMEO分别用来设置 socket 接收数据超时时间和发送数据超时时间。因此，这2个选项仅对数据的接收和发送相关的 socket 专用的系统调用有效。 SIGALRM 信号基于升序链表的定时器处理非活动连接 IO 复用系统调用的超时参数Linux 下的3组 IO 系统调用都带有超时参数，因此它们不仅能">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mumu-lsl.github.io/img/avatar.png">
+<meta property="article:published_time" content="2022-02-10T02:59:26.000Z">
+<meta property="article:modified_time" content="2022-03-10T03:07:00.037Z">
+<meta property="article:author" content="木木想去北海种花">
+<meta property="article:tag" content="Linux网络编程">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mumu-lsl.github.io/img/avatar.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://mumu-lsl.github.io/posts/2e5216dd/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: true,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '定时器',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-03-10 11:07:00'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.0.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avatar.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">10</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> Movie</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://s2.loli.net/2022/02/11/YaJySpVl2sNrqxO.jpg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">Lin's Blog</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> Archives</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> Tags</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> Categories</span></a></div><div class="menus_item"><a class="site-page group" href="javascript:void(0);"><i class="fa-fw fas fa-list"></i><span> List</span><i class="fas fa-chevron-down"></i></a><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> Music</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> Movie</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> Link</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> About</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">定时器</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-02-10T02:59:26.000Z" title="发表于 2022-02-10 10:59:26">2022-02-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-03-10T03:07:00.037Z" title="更新于 2022-03-10 11:07:00">2022-03-10</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%8A%80%E6%9C%AF/">技术</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="定时器"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="定时器"><a href="#定时器" class="headerlink" title="定时器"></a>定时器</h1><hr>
+<p>Linux 3种定时方法</p>
+<ol>
+<li>socket 选项 SO_RCVTIMEO 和 SO_SNDTIMEO<br>分别用来设置 socket 接收数据超时时间和发送数据超时时间。<br>因此，这2个选项仅对数据的接收和发送相关的 socket 专用的系统调用有效。</li>
+<li>SIGALRM 信号<br>基于升序链表的定时器<br>处理非活动连接</li>
+<li>IO 复用系统调用的超时参数<br>Linux 下的3组 IO 系统调用都带有超时参数，因此它们不仅能统一处理信号和IO事件，也能统一<br>处理定时事件。但是由于IO复用函数系统调用可能在超时时间到期之前就返回(有IO事件发生)，如果<br>我们要利用它们来定时，就需要不断更新定时参数以反映剩余的时间。</li>
+</ol>
+<p>定时器通常至少包含2个成员：</p>
+<ul>
+<li>​    一个是超时时间(相对时间或者绝对时间)</li>
+<li>​    一个任务回调函数</li>
+<li>​    还可能包括回调函数需要的参数<br>​    以及是否重启定时器等信息</li>
+</ul>
+<p>两种高效的管理定时器的容器：</p>
+<ol>
+<li><p>时间轮<br>固定的频率调用心博函数 tick, 并以此检查到期的定时器，然后执行定时器上的回调函数。</p>
+</li>
+<li><p>时间堆<br>  将所有定时器中超时时间最小的一个定时器的超时时间作为心博间隔。</p>
+</li>
+</ol>
+<h2 id="socket-选项-SO-RCVTIMEO-和-SO-SNDTIMEO"><a href="#socket-选项-SO-RCVTIMEO-和-SO-SNDTIMEO" class="headerlink" title="socket 选项 SO_RCVTIMEO 和 SO_SNDTIMEO"></a>socket 选项 SO_RCVTIMEO 和 SO_SNDTIMEO</h2><p> SO_RCVTIMEO 和 SO_SNDTIMEO 对相关系统调用的影响如下表：</p>
+<p><img src="https://s2.loli.net/2022/02/14/2YRmeOozDwq8MFr.png" alt="image-20220214172849145"></p>
+<h2 id="SIGALRM-信号"><a href="#SIGALRM-信号" class="headerlink" title="SIGALRM 信号"></a>SIGALRM 信号</h2><p>由alarm和setitimer函数设置的实时闹钟一旦超时，将触发SIGALRM信号。因此，我们可以利用该信号的信号处理函数来处理定时任务。但是，如果要处理多个定时任务，我们就需要不断触发SIGALRM信号，并在其信号处理函数中执行到期的任务。一般而言，SIGALRM信号按照固定频率生成，即由alarm或setitimer函数设计的定时周期T保持不变。如果某个定时任务的超时时间不是T的整数倍，那么它实际被执行的时间和预期的时间将略有偏差。因此定时周期T反映了定时的精度。</p>
+<h2 id="IO-复用系统调用的超时参数"><a href="#IO-复用系统调用的超时参数" class="headerlink" title="IO 复用系统调用的超时参数"></a>IO 复用系统调用的超时参数</h2><p><em>Linux</em>下的<em>3</em>组<em>I&#x2F;O</em>复用系统调用都带有超时参数，因此他们不仅能同意处理信号和<em>I&#x2F;O</em>事件，也能统一处理定时事件。但是由于<em>I&#x2F;O</em>复用系统可能在超时时间到期之前就返回，所以如果我们能要利用它们来定时，就需要不断更新定时参数以反映剩余的时间</p>
+<h2 id="高性能定时器："><a href="#高性能定时器：" class="headerlink" title="高性能定时器："></a>高性能定时器：</h2><h3 id="时间轮"><a href="#时间轮" class="headerlink" title="时间轮"></a>时间轮</h3><p>基于排序链表的定时器有一个特定就是添加定时器的效率偏低</p>
+<p><img src="https://s2.loli.net/2022/02/15/fWF5IOQMSLcjkeZ.png" alt="image-20220215152746503"></p>
+<p>上图所示的时间轮，实现指针指向轮子的一个槽。它以恒定的速度顺时转动，每转动一步就指向下一个槽，每次转动称为一个滴答。一个滴答的时间称为时间轮的槽间隔si，它时间上就是心搏时间。该时间轮共有N个槽，因此转一圈时间是N*si。每个槽指向一跳定时器链表，每条链表上的定时器具有相同的特征：他们的定时时间差JN*si的整数倍。很显然，对时间轮而言，要提高定时精度，就要使si值足够小；要提高执行效率，则要求N值足够大。</p>
+<h3 id="时间堆"><a href="#时间堆" class="headerlink" title="时间堆"></a>时间堆</h3><p>前面讨论的定时方案都是以固定是频率调用心搏函数tick，并在其中一次检测到期的定时器，然后执行到期定时器上的回调函数。设计定时器的另一种思路是：将所有定时器中超时时间最小的一个定时器的超时值作为心搏间隔。这样，一旦心搏函数tick被调用，超时时间最小的定时器必然到期，我们就可以在tick函数中处理该定时器。然后，再次从剩余的定时器中找出超时时间最小的一个，并将这段最小时间设置为下一次心搏间隔。时间堆就是利用最小堆来是实现上述方案。最小堆是指每个节点的值都小于或等于其子节点的完全二叉树。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">木木想去北海种花</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://mumu-lsl.github.io/posts/2e5216dd/">https://mumu-lsl.github.io/posts/2e5216dd/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://mumu-lsl.github.io" target="_blank">Lin's Blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Linux%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/">Linux网络编程</a></div><div class="post_share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/posts/5c237c5f/"><img class="prev-cover" src="https://s2.loli.net/2022/02/11/YaJySpVl2sNrqxO.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">IO复用</div></div></a></div><div class="next-post pull-right"><a href="/posts/16108/"><img class="next-cover" src="https://s2.loli.net/2022/02/11/YaJySpVl2sNrqxO.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Linux高性能服务器编程</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/posts/341a9d02/" title="多线程编程"><img class="cover" src="https://s2.loli.net/2022/02/11/YaJySpVl2sNrqxO.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-15</div><div class="title">多线程编程</div></div></a></div><div><a href="/posts/5c237c5f/" title="IO复用"><img class="cover" src="https://s2.loli.net/2022/02/11/YaJySpVl2sNrqxO.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-10</div><div class="title">IO复用</div></div></a></div><div><a href="/posts/f02c82f1/" title="poll应用——聊天室程序"><img class="cover" src="https://s2.loli.net/2022/02/11/YaJySpVl2sNrqxO.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-11</div><div class="title">poll应用——聊天室程序</div></div></a></div><div><a href="/posts/16108/" title="Linux高性能服务器编程"><img class="cover" src="https://s2.loli.net/2022/02/11/YaJySpVl2sNrqxO.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-09</div><div class="title">Linux高性能服务器编程</div></div></a></div><div><a href="/posts/2e29b6af/" title="select应用——非阻塞connect"><img class="cover" src="https://s2.loli.net/2022/02/11/YaJySpVl2sNrqxO.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-11</div><div class="title">select应用——非阻塞connect</div></div></a></div><div><a href="/posts/f4bfb319/" title="同时监听TCP与UDP端口"><img class="cover" src="https://s2.loli.net/2022/02/11/YaJySpVl2sNrqxO.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-11</div><div class="title">同时监听TCP与UDP端口</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">木木想去北海种花</div><div class="author-info__description">Lin在此创作, 欢迎各位</div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">10</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/mumu-LSL" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="/zumumu@outlook.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AE%9A%E6%97%B6%E5%99%A8"><span class="toc-number">1.</span> <span class="toc-text">定时器</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#socket-%E9%80%89%E9%A1%B9-SO-RCVTIMEO-%E5%92%8C-SO-SNDTIMEO"><span class="toc-number">1.1.</span> <span class="toc-text">socket 选项 SO_RCVTIMEO 和 SO_SNDTIMEO</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SIGALRM-%E4%BF%A1%E5%8F%B7"><span class="toc-number">1.2.</span> <span class="toc-text">SIGALRM 信号</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#IO-%E5%A4%8D%E7%94%A8%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E7%9A%84%E8%B6%85%E6%97%B6%E5%8F%82%E6%95%B0"><span class="toc-number">1.3.</span> <span class="toc-text">IO 复用系统调用的超时参数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%AB%98%E6%80%A7%E8%83%BD%E5%AE%9A%E6%97%B6%E5%99%A8%EF%BC%9A"><span class="toc-number">1.4.</span> <span class="toc-text">高性能定时器：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%97%B6%E9%97%B4%E8%BD%AE"><span class="toc-number">1.4.1.</span> <span class="toc-text">时间轮</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%97%B6%E9%97%B4%E5%A0%86"><span class="toc-number">1.4.2.</span> <span class="toc-text">时间堆</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/posts/341a9d02/" title="多线程编程"><img src="https://s2.loli.net/2022/02/11/YaJySpVl2sNrqxO.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="多线程编程"/></a><div class="content"><a class="title" href="/posts/341a9d02/" title="多线程编程">多线程编程</a><time datetime="2022-02-15T04:00:02.000Z" title="发表于 2022-02-15 12:00:02">2022-02-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/716f0d9b/" title="多进程编程">多进程编程</a><time datetime="2022-02-13T02:59:47.000Z" title="发表于 2022-02-13 10:59:47">2022-02-13</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/f4bfb319/" title="同时监听TCP与UDP端口">同时监听TCP与UDP端口</a><time datetime="2022-02-11T12:59:49.000Z" title="发表于 2022-02-11 20:59:49">2022-02-11</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/2e29b6af/" title="select应用——非阻塞connect">select应用——非阻塞connect</a><time datetime="2022-02-11T08:44:18.000Z" title="发表于 2022-02-11 16:44:18">2022-02-11</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/posts/f02c82f1/" title="poll应用——聊天室程序">poll应用——聊天室程序</a><time datetime="2022-02-11T08:43:35.000Z" title="发表于 2022-02-11 16:43:35">2022-02-11</time></div></div></div></div></div></div></main><footer id="footer" style="background: -rgb(0,0,255)"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By 木木想去北海种花</div><div class="footer_custom_text">所有你乐于挥霍的时间，都不能算作浪费</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><div class="js-pjax"></div><script defer="defer" id="ribbon" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-ribbon.min.js" size="150" alpha="0.6" zIndex="-1" mobile="true" data-click="true"></script><script defer="defer" id="fluttering_ribbon" mobile="null" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
